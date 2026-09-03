@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trung tâm dạy học MATHST</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --navy:#132445;
+    --navy-deep:#0C1830;
+    --navy-mid:#1D3564;
+    --gold:#C89239;
+    --gold-light:#E9C97C;
+    --gold-pale:#F6E9CC;
+    --cream:#F6F3EA;
+    --paper:#FFFFFF;
+    --ink:#1B1D26;
+    --ink-soft:#565A68;
+    --line:#E2DED2;
+    --green:#3E7A57;
+    --green-pale:#E4F0E5;
+    --red:#B23A2E;
+    --red-pale:#FBEAE7;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(19,36,69,0.06),0 8px 24px rgba(19,36,69,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;line-height:1.55;}
+  h1,h2,h3,.serif{font-family:'Fraunces',serif;}
+  a{color:inherit;}
+  button{font-family:'Inter',sans-serif;cursor:pointer;}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 24px;}
+  ::selection{background:var(--gold-pale);}
+
+  /* ---- Header ---- */
+  .topbar{background:var(--navy-deep);color:#D8DEEC;font-size:13px;}
+  .topbar .wrap{display:flex;justify-content:space-between;align-items:center;height:34px;}
+  .topbar-links{display:flex;gap:18px;}
+  .topbar-links span{opacity:0.85;}
+
+  header.main{background:var(--paper);border-bottom:1px solid var(--line);}
+  .headerrow{display:flex;align-items:center;justify-content:space-between;padding:18px 0;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:46px;height:46px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-mark svg{width:26px;height:26px;}
+  .brand-name{font-family:'Fraunces',serif;font-size:21px;font-weight:600;color:var(--navy);letter-spacing:0.2px;line-height:1.1;}
+  .brand-sub{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .admin-toggle{border:1px solid var(--line);background:var(--paper);padding:8px 14px;border-radius:var(--radius);font-size:13px;color:var(--ink-soft);}
+  .admin-toggle.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+  nav.tabs{background:var(--navy);}
+  nav.tabs .wrap{display:flex;gap:2px;overflow-x:auto;}
+  nav.tabs button{background:transparent;border:none;color:#C3CBDF;padding:14px 20px;font-size:14.5px;font-weight:500;white-space:nowrap;border-bottom:3px solid transparent;}
+  nav.tabs button.on{color:#fff;border-bottom-color:var(--gold);background:var(--navy-mid);}
+  nav.tabs button:hover:not(.on){color:#fff;}
+
+  main{padding:40px 0 80px;}
+  .panel{display:none;}
+  .panel.on{display:block;}
+
+  /* ---- Home ---- */
+  .hero{display:grid;grid-template-columns:1.3fr 1fr;gap:44px;align-items:center;padding:8px 0 44px;border-bottom:1px solid var(--line);margin-bottom:40px;}
+  .hero h1{font-size:38px;font-weight:500;color:var(--navy);margin:0 0 16px;line-height:1.18;}
+  .hero p{color:var(--ink-soft);font-size:16px;max-width:52ch;margin:0 0 24px;}
+  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .btn{display:inline-block;padding:11px 20px;border-radius:var(--radius);font-size:14.5px;font-weight:600;border:1px solid transparent;}
+  .btn-gold{background:var(--gold);color:var(--navy-deep);}
+  .btn-gold:hover{background:var(--gold-light);}
+  .btn-outline{background:transparent;border-color:var(--navy);color:var(--navy);}
+  .btn-outline:hover{background:var(--navy);color:#fff;}
+  .grade-panel{background:var(--navy);border-radius:14px;padding:26px;color:#fff;}
+  .grade-panel h3{margin:0 0 4px;font-size:16px;font-weight:500;color:var(--gold-light);}
+  .grade-panel p{margin:0 0 16px;font-size:13px;color:#AEB8D2;}
+  .grade-chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#fff;padding:7px 14px;border-radius:20px;font-size:13.5px;}
+  .subj-row{display:flex;gap:8px;margin-top:14px;}
+  .subj-pill{font-size:12.5px;color:var(--navy-deep);background:var(--gold-pale);padding:5px 11px;border-radius:20px;}
+
+  .section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px;}
+  .section-head h2{font-size:22px;font-weight:500;color:var(--navy);margin:0;}
+  .section-head .hint{font-size:13px;color:var(--ink-soft);}
+
+  .posts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-bottom:48px;}
+  .post-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+  .post-date{font-size:12px;color:var(--gold);font-weight:600;}
+  .post-card h3{font-size:17px;font-weight:500;margin:6px 0 8px;color:var(--navy);}
+  .post-card p{font-size:13.5px;color:var(--ink-soft);margin:0;}
+
+  /* ---- Exam bank tree ---- */
+  .exam-tree{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  .tree-row{display:flex;align-items:center;gap:9px;padding:11px 16px;cursor:pointer;font-size:14px;color:var(--navy);font-weight:500;border-top:1px solid var(--line);}
+  .tree-row:first-child{border-top:none;}
+  .tree-row:hover{background:var(--cream);}
+  .tree-chevron{width:12px;flex-shrink:0;color:var(--ink-soft);font-size:11px;}
+  .tree-count{margin-left:auto;font-size:12px;color:var(--ink-soft);font-weight:400;flex-shrink:0;}
+  .tree-children{background:#FCFBF7;}
+  .tree-empty-note{padding:12px 16px;font-size:13px;color:var(--ink-soft);border-top:1px solid var(--line);}
+  .tree-leaf{display:flex;align-items:center;gap:10px;padding:11px 16px 11px 40px;flex-wrap:wrap;border-top:1px solid var(--line);background:#fff;}
+  .tree-leaf-title{font-size:13.5px;color:var(--ink);flex:1;min-width:170px;}
+  .tree-leaf-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .lvl-1 .tree-row{padding-left:16px;}
+  .lvl-2 .tree-row{padding-left:32px;font-size:13.5px;}
+  .lvl-3 .tree-row{padding-left:48px;font-size:13.5px;font-weight:400;color:var(--ink);}
+  .lvl-3 .tree-leaf{padding-left:64px;}
+
+  .exam-tags{display:flex;gap:6px;}
+  .tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;}
+  .tag-grade{background:var(--gold-pale);color:#7A5A15;}
+  .tag-subject{background:#E5EAF4;color:var(--navy);}
+  .exam-meta{font-size:12.5px;color:var(--ink-soft);}
+  .lock-state{font-size:12.5px;color:var(--ink-soft);}
+  .empty-note{padding:40px 20px;text-align:center;color:var(--ink-soft);font-size:14px;background:var(--paper);border:1px dashed var(--line);border-radius:var(--radius);}
+  .file-badge{font-size:11.5px;color:var(--navy);background:#EEF1F7;padding:4px 9px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;width:fit-content;}
+  .status-badge{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:20px;}
+  .status-open{background:var(--green-pale);color:var(--green);}
+  .status-wait{background:var(--gold-pale);color:#7A5A15;}
+  .status-closed{background:var(--red-pale);color:var(--red);}
+  .post-image{width:100%;height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px;display:block;}
+  .file-download-link{display:inline-block;margin-top:10px;font-size:13.5px;font-weight:600;color:var(--navy);border:1px solid var(--navy);padding:8px 16px;border-radius:8px;background:none;cursor:pointer;}
+  .file-download-link:hover{background:var(--navy);color:#fff;}
+  .field-hint{font-size:11.5px;color:var(--ink-soft);margin-top:3px;}
+  .pdf-frame{width:100%;height:480px;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:14px;}
+  .pdf-frame iframe{width:100%;height:100%;border:none;}
+  .file-note{font-size:13px;color:var(--ink-soft);background:var(--cream);padding:12px 14px;border-radius:8px;margin-top:14px;}
+  .doc-preview-wrap{margin-top:14px;}
+  .doc-preview{background:#fff;border:1px solid var(--line);border-radius:8px;padding:24px;font-size:14px;line-height:1.75;color:var(--ink);max-height:520px;overflow-y:auto;}
+  .doc-preview p{margin:0 0 12px;}
+  .doc-preview h1,.doc-preview h2,.doc-preview h3{font-family:'Fraunces',serif;color:var(--navy);margin:18px 0 10px;line-height:1.3;}
+  .doc-preview table{border-collapse:collapse;margin:12px 0;width:100%;}
+  .doc-preview td,.doc-preview th{border:1px solid var(--line);padding:6px 10px;font-size:13px;}
+  .doc-preview img{max-width:100%;height:auto;}
+  .doc-preview ul,.doc-preview ol{margin:0 0 12px 22px;}
+
+  /* ---- Library ---- */
+  .doc-list{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  .doc-row{background:var(--paper);padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;}
+  .doc-info h4{margin:0 0 4px;font-size:15px;font-weight:500;color:var(--navy);}
+  .doc-info p{margin:0;font-size:12.5px;color:var(--ink-soft);}
+  .doc-download{border:1px solid var(--navy);background:transparent;color:var(--navy);padding:8px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;white-space:nowrap;}
+  .doc-download:hover{background:var(--navy);color:#fff;}
+
+  /* ---- Admin forms ---- */
+  .admin-block{background:#FCFAF3;border:1px solid var(--gold-pale);border-radius:var(--radius);padding:20px;margin-top:28px;}
+  .admin-block h3{margin:0 0 14px;font-size:15px;color:var(--navy);font-weight:600;}
+  .admin-block .field-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:10px;}
+  .admin-block label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px;}
+  .admin-block input,.admin-block select,.admin-block textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;font-size:13.5px;font-family:'Inter',sans-serif;background:#fff;}
+  .admin-block textarea{min-height:90px;resize:vertical;font-family:'Inter',monospace;}
+  .admin-submit{background:var(--navy);color:#fff;border:none;padding:9px 18px;border-radius:6px;font-size:13.5px;font-weight:600;margin-top:4px;}
+  .admin-item-list{margin-top:14px;display:flex;flex-direction:column;gap:6px;}
+  .admin-item-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-soft);background:#fff;border:1px solid var(--line);padding:8px 12px;border-radius:6px;}
+  .admin-item-row .del{color:var(--red);border:none;background:none;font-size:12px;font-weight:600;}
+
+  /* ---- Modal ---- */
+  .modal-bg{position:fixed;inset:0;background:rgba(12,20,40,0.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50;}
+  .modal-bg.on{display:flex;}
+  .modal{background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;padding:0;}
+  .modal-head{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;}
+  .modal-head h3{margin:0 0 4px;font-size:17px;color:var(--navy);font-weight:500;}
+  .modal-head .exam-meta{margin:0;}
+  .modal-close{border:none;background:none;font-size:20px;color:var(--ink-soft);line-height:1;padding:2px 6px;}
+  .modal-body{padding:24px;}
+  .pw-input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:8px;font-size:16px;letter-spacing:2px;text-align:center;}
+  .pw-error{color:var(--red);font-size:13px;margin-top:8px;display:none;}
+  .pw-error.on{display:block;}
+  .pw-hint{font-size:12.5px;color:var(--ink-soft);margin-top:12px;}
+  .exam-content .q{margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--line);font-size:14.5px;}
+  .exam-content .q:last-child{border-bottom:none;}
+  .q-num{color:var(--gold);font-weight:700;margin-right:6px;}
+  .unlock-banner{background:var(--green-pale);color:var(--green);font-size:12.5px;padding:9px 14px;border-radius:8px;margin-bottom:18px;font-weight:600;}
+
+  footer{background:var(--navy-deep);color:#9AA5C0;font-size:13px;padding:30px 0;margin-top:20px;}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+
+  @media(max-width:720px){
+    .hero{grid-template-columns:1fr;}
+    .headerrow{flex-wrap:wrap;gap:12px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="topbar-links">
+      <span id="siteHotlineBar">Hotline: —</span>
+      <span id="siteAddressBar">Địa chỉ: —</span>
+    </div>
+    <div class="topbar-links">
+      <span id="live-clock"></span>
+    </div>
+  </div>
+</div>
+
+<header class="main">
+  <div class="wrap headerrow">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 9L12 4L21 9L12 14L3 9Z" stroke="#E9C97C" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M7 11.5V16C7 16 9 18 12 18C15 18 17 16 17 16V11.5" stroke="#E9C97C" stroke-width="1.4"/>
+          <path d="M21 9V14" stroke="#E9C97C" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">MATHST</div>
+        <div class="brand-sub">Trung tâm dạy học Toán &amp; Khoa học tự nhiên</div>
+      </div>
+    </div>
+    <button class="admin-toggle" id="adminToggleBtn">Chế độ quản trị</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="wrap">
+    <button data-tab="home" class="on">Trang chủ</button>
+    <button data-tab="exams">Ngân hàng đề thi</button>
+    <button data-tab="library">Kho học liệu</button>
+    <button data-tab="about">Giới thiệu &amp; liên hệ</button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- HOME -->
+  <section class="panel on" id="panel-home">
+    <div class="hero">
+      <div>
+        <h1>Nền tảng vững, tư duy sắc — <em style="font-style:italic;">MATHST</em></h1>
+        <p>Trung tâm dạy học MATHST đồng hành cùng học sinh khối 6 đến khối 9 trong hai môn Toán và Khoa học tự nhiên, với hệ thống đề kiểm tra, tài liệu ôn luyện và cập nhật hoạt động thường xuyên.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-gold" href="#" onclick="switchTab('exams');return false;">Xem ngân hàng đề thi</a>
+          <a class="btn btn-outline" href="#" onclick="switchTab('library');return false;">Kho học liệu</a>
+        </div>
+      </div>
+      <div class="grade-panel">
+        <h3>Khối lớp đang giảng dạy</h3>
+        <p>Chương trình bám sát SGK, bổ sung nâng cao theo từng khối</p>
+        <div class="grade-chips">
+          <span class="chip">Khối 6</span>
+          <span class="chip">Khối 7</span>
+          <span class="chip">Khối 8</span>
+          <span class="chip">Khối 9</span>
+        </div>
+        <div class="subj-row">
+          <span class="subj-pill">Toán</span>
+          <span class="subj-pill">KHTN</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2>Hoạt động của trung tâm</h2>
+      <span class="hint" id="postCount"></span>
+    </div>
+    <div class="posts-grid" id="postsGrid"></div>
+
+    <div class="admin-block" id="adminPosts" style="display:none;">
+      <h3>Đăng bài hoạt động mới</h3>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Tiêu đề</label>
+          <input type="text" id="postTitle" placeholder="Ví dụ: Lịch thi thử tháng 9">
+        </div>
+      </div>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Nội dung</label>
+          <textarea id="postBody" placeholder="Nội dung bài đăng..."></textarea>
+        </div>
+      </div>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Hình ảnh đính kèm (không bắt buộc)</label>
+          <input type="file" id="postImage" accept="image/*">
+          <div class="field-hint">Dung lượng tối đa 20MB.</div>
+        </div>
+      </div>
+      <button class="admin-submit" onclick="addPost()">Đăng bài</button>
+      <div class="admin-item-list" id="postAdminList"></div>
+    </div>
+  </section>
+
+  <!-- EXAMS -->
+  <section class="panel" id="panel-exams">
+    <div class="section-head">
+      <h2>Ngân hàng đề thi</h2>
+      <span class="hint">Duyệt theo cây thư mục — mở đề sẽ hiện trực tiếp trong trình duyệt sau khi nhập đúng mật khẩu</span>
+    </div>
+
+    <div class="exam-tree" id="examTree"></div>
+    <div class="empty-note" id="examEmpty" style="display:none;margin-top:16px;">Chưa có đề thi nào trong ngân hàng đề.</div>
+
+    <div class="admin-block" id="adminExams" style="display:none;">
+      <h3>Thêm đề thi mới</h3>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Loại kiểm tra (thư mục phân loại)</label>
+          <select id="examCategory">
+            <option>Kiểm tra học kỳ</option>
+            <option>Kiểm tra giữa kỳ</option>
+            <option>Kiểm tra theo chương</option>
+            <option>Kiểm tra thường xuyên</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div>
+          <label>Khối</label>
+          <select id="examGrade"><option>6</option><option>7</option><option>8</option><option>9</option></select>
+        </div>
+        <div>
+          <label>Môn học</label>
+          <select id="examSubject"><option>Toán</option><option>KHTN</option></select>
+        </div>
+        <div>
+          <label>Mật khẩu xem đề</label>
+          <input type="text" id="examPassword" placeholder="Ví dụ: kt15p-0931">
+        </div>
+      </div>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Tên đề thi</label>
+          <input type="text" id="examTitle" placeholder="Ví dụ: Kiểm tra 15 phút - Chương 1">
+        </div>
+      </div>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Nội dung đề (mỗi câu một dòng, công thức Toán viết trong dấu $...$) — không bắt buộc nếu đã tải file</label>
+          <textarea id="examContent" placeholder="Câu 1: Giải phương trình $2x + 3 = 11$&#10;Câu 2: Tính giá trị biểu thức $\frac{3}{4} + \frac{1}{2}$"></textarea>
+        </div>
+      </div>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Tệp đề thi (PDF hoặc Word, không bắt buộc)</label>
+          <input type="file" id="examFile" accept=".pdf,.doc,.docx">
+          <div class="field-hint">Tối đa 20MB. Nếu đề có công thức MathType/Equation Editor trong Word, hãy xuất file sang <strong>PDF</strong> trước khi tải lên — công thức dạng này không hiển thị được khi tải file .docx/.doc thẳng lên web. File .pdf luôn xem trực tiếp được trên web.</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div>
+          <label>Mở đề từ</label>
+          <input type="datetime-local" id="examOpenFrom">
+        </div>
+        <div>
+          <label>Đến khi nào</label>
+          <input type="datetime-local" id="examOpenTo">
+        </div>
+      </div>
+      <div class="field-hint" style="margin-bottom:10px;">Để trống nếu muốn đề mở không giới hạn thời gian ở phía đó.</div>
+      <button class="admin-submit" onclick="addExam()">Thêm đề thi</button>
+      <div class="admin-item-list" id="examAdminList"></div>
+    </div>
+  </section>
+
+  <!-- LIBRARY -->
+  <section class="panel" id="panel-library">
+    <div class="section-head">
+      <h2>Kho học liệu</h2>
+      <span class="hint">Tài liệu ôn tập, lý thuyết và bài tập theo khối</span>
+    </div>
+    <div class="doc-list" id="docList"></div>
+
+    <div class="admin-block" id="adminDocs" style="display:none;">
+      <h3>Thêm tài liệu mới</h3>
+      <div class="field-row">
+        <div>
+          <label>Khối</label>
+          <select id="docGrade"><option>6</option><option>7</option><option>8</option><option>9</option></select>
+        </div>
+        <div>
+          <label>Môn học</label>
+          <select id="docSubject"><option>Toán</option><option>KHTN</option></select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Tên tài liệu</label>
+          <input type="text" id="docTitle" placeholder="Ví dụ: Tổng hợp công thức Đại số chương 2">
+        </div>
+      </div>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Mô tả ngắn</label>
+          <input type="text" id="docDesc" placeholder="Mô tả nội dung tài liệu">
+        </div>
+      </div>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Tệp tài liệu (PDF hoặc Word)</label>
+          <input type="file" id="docFile" accept=".pdf,.doc,.docx">
+          <div class="field-hint">Dung lượng tối đa 20MB.</div>
+        </div>
+      </div>
+      <button class="admin-submit" onclick="addDoc()">Thêm tài liệu</button>
+      <div class="admin-item-list" id="docAdminList"></div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="panel" id="panel-about">
+    <div class="section-head"><h2>Giới thiệu</h2></div>
+    <p id="siteAboutText" style="max-width:70ch;color:var(--ink-soft);font-size:15px;">Đang tải...</p>
+    <div class="section-head" style="margin-top:34px;"><h2>Liên hệ</h2></div>
+    <p id="siteContactBlock" style="max-width:70ch;color:var(--ink-soft);font-size:15px;">Đang tải...</p>
+
+    <div class="admin-block" id="adminSiteInfo" style="display:none;margin-top:34px;">
+      <h3>Thông tin trung tâm</h3>
+      <div class="field-row">
+        <div>
+          <label>Hotline</label>
+          <input type="text" id="siteHotlineInput" placeholder="0900 000 000">
+        </div>
+        <div>
+          <label>Email liên hệ</label>
+          <input type="text" id="siteEmailInput" placeholder="lienhe@mathst.vn">
+        </div>
+      </div>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Địa chỉ</label>
+          <input type="text" id="siteAddressInput" placeholder="12 Trần Phú, Hội An, Quảng Nam">
+        </div>
+      </div>
+      <div class="field-row">
+        <div style="grid-column:1/-1;">
+          <label>Đoạn giới thiệu</label>
+          <textarea id="siteAboutInput" placeholder="Giới thiệu về trung tâm..."></textarea>
+        </div>
+      </div>
+      <button class="admin-submit" onclick="saveSiteInfo()">Lưu thông tin</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Trung tâm dạy học MATHST</span>
+    <span>Toán · Khoa học tự nhiên · Khối 6–9</span>
+  </div>
+</footer>
+
+<!-- Admin login modal -->
+<div class="modal-bg" id="loginModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h3>Đăng nhập quản trị</h3></div>
+      <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label style="display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;">Email quản trị</label>
+      <input type="email" id="loginEmail" placeholder="admin@mathst.vn" style="width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:8px;font-size:14px;margin-bottom:14px;">
+      <label style="display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;">Mật khẩu</label>
+      <input type="password" id="loginPassword" placeholder="Mật khẩu" style="width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:8px;font-size:14px;">
+      <div class="pw-error" id="loginError">Đăng nhập thất bại.</div>
+      <button class="btn btn-gold" style="margin-top:16px;width:100%;text-align:center;border:none;" onclick="doLogin()">Đăng nhập</button>
+    </div>
+  </div>
+</div>
+
+<!-- Password modal -->
+<div class="modal-bg" id="pwModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 id="pwExamTitle"></h3>
+        <p class="exam-meta" id="pwExamMeta"></p>
+      </div>
+      <button class="modal-close" onclick="closePwModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label style="display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:8px;">Nhập mật khẩu xem đề (do quản trị viên cung cấp)</label>
+      <input type="text" class="pw-input" id="pwInput" placeholder="Mật khẩu" autocomplete="off">
+      <div class="pw-error" id="pwError">Mật khẩu không đúng. Vui lòng kiểm tra lại.</div>
+      <div class="pw-hint">Mật khẩu chỉ được cung cấp cho học sinh trực tiếp trước giờ kiểm tra.</div>
+      <button class="btn btn-gold" style="margin-top:16px;width:100%;text-align:center;border:none;" onclick="checkPassword()">Xem đề thi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- Firebase setup ----
+const firebaseConfig = {
+  apiKey: "AIzaSyBFeLtOtoF3E5vKl2_Gmj-XB25iJJiSl70",
+  authDomain: "mathst-thayviet.firebaseapp.com",
+  projectId: "mathst-thayviet",
+  storageBucket: "mathst-thayviet.firebasestorage.app",
+  messagingSenderId: "570891443972",
+  appId: "1:570891443972:web:536f533f3b303274ea3a51",
+  measurementId: "G-VEHMYJCFFX"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
+const auth = firebase.auth();
+
+let state = { posts: [], exams: [], docs: [] };
+let unlocked = {};
+try{ unlocked = JSON.parse(localStorage.getItem('mathst-unlocked') || '{}'); }catch(e){ unlocked = {}; }
+function saveUnlockedLocal(){
+  try{ localStorage.setItem('mathst-unlocked', JSON.stringify(unlocked)); }catch(e){ /* ignore */ }
+}
+
+let openNodes = new Set();
+const EXAM_CATEGORIES = ['Kiểm tra học kỳ','Kiểm tra giữa kỳ','Kiểm tra theo chương','Kiểm tra thường xuyên'];
+let pendingExamId = null;
+let isAdmin = false;
+const MAX_FILE_BYTES = 20 * 1024 * 1024;
+
+function fmtDT(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d)) return '';
+  return d.toLocaleString('vi-VN', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+function getExamStatus(e){
+  const now = new Date();
+  if(e.openFrom){ const from = new Date(e.openFrom); if(!isNaN(from) && now < from) return 'wait'; }
+  if(e.openTo){ const to = new Date(e.openTo); if(!isNaN(to) && now > to) return 'closed'; }
+  return 'open';
+}
+
+let didInitialOpen = false;
+function initFirestoreListeners(){
+  db.collection('posts').orderBy('createdAt','desc').onSnapshot(snap => {
+    state.posts = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderPosts(); renderAdminLists();
+  }, err => console.error('posts listener', err));
+
+  db.collection('exams').onSnapshot(snap => {
+    state.exams = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    if(!didInitialOpen){
+      const catsWithExams = new Set(state.exams.map(e => e.category || 'Kiểm tra thường xuyên'));
+      catsWithExams.forEach(c => openNodes.add(c));
+      didInitialOpen = true;
+    }
+    renderExamTree(); renderAdminLists();
+  }, err => console.error('exams listener', err));
+
+  db.collection('documents').onSnapshot(snap => {
+    state.docs = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderDocs(); renderAdminLists();
+  }, err => console.error('documents listener', err));
+
+  db.collection('settings').doc('site').onSnapshot(snap => {
+    const data = snap.exists ? snap.data() : {};
+    renderSiteInfo(data);
+  }, err => console.error('site settings listener', err));
+}
+
+const SITE_INFO_DEFAULTS = {
+  hotline: '0900 000 000',
+  address: '12 Trần Phú, Hội An, Quảng Nam',
+  email: 'lienhe@mathst.vn',
+  aboutText: 'Trung tâm dạy học MATHST chuyên bồi dưỡng Toán và Khoa học tự nhiên cho học sinh khối 6–9, với đội ngũ giáo viên giàu kinh nghiệm và hệ thống đề kiểm tra, học liệu được cập nhật thường xuyên.'
+};
+function renderSiteInfo(data){
+  const info = {...SITE_INFO_DEFAULTS, ...data};
+  document.getElementById('siteHotlineBar').textContent = 'Hotline: ' + info.hotline;
+  document.getElementById('siteAddressBar').textContent = 'Địa chỉ: ' + info.address;
+  document.getElementById('siteAboutText').textContent = info.aboutText;
+  document.getElementById('siteContactBlock').innerHTML =
+    `Địa chỉ: ${escapeHtml(info.address)}<br>Điện thoại: ${escapeHtml(info.hotline)}<br>Email: ${escapeHtml(info.email)}`;
+  // Pre-fill the admin edit form too, but don't stomp on text the admin is actively typing.
+  if(document.activeElement && document.activeElement.id && document.activeElement.id.startsWith('site') && document.activeElement.id.endsWith('Input')) return;
+  document.getElementById('siteHotlineInput').value = info.hotline;
+  document.getElementById('siteAddressInput').value = info.address;
+  document.getElementById('siteEmailInput').value = info.email;
+  document.getElementById('siteAboutInput').value = info.aboutText;
+}
+async function saveSiteInfo(){
+  if(!isAdmin){ alert('Bạn cần đăng nhập quản trị trước.'); return; }
+  const hotline = document.getElementById('siteHotlineInput').value.trim();
+  const address = document.getElementById('siteAddressInput').value.trim();
+  const email = document.getElementById('siteEmailInput').value.trim();
+  const aboutText = document.getElementById('siteAboutInput').value.trim();
+  try{
+    await db.collection('settings').doc('site').set({hotline, address, email, aboutText}, {merge:true});
+    alert('Đã lưu thông tin trung tâm.');
+  }catch(err){
+    alert('Không thể lưu: ' + err.message);
+  }
+}
+
+auth.onAuthStateChanged(user => {
+  isAdmin = !!user;
+  const btn = document.getElementById('adminToggleBtn');
+  btn.classList.toggle('active', isAdmin);
+  btn.textContent = isAdmin ? (user.email + ' · Đăng xuất') : 'Đăng nhập quản trị';
+  ['adminPosts','adminExams','adminDocs','adminSiteInfo'].forEach(id=>document.getElementById(id).style.display = isAdmin ? 'block' : 'none');
+});
+
+function switchTab(tab){
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on', p.id==='panel-'+tab));
+}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+function renderAll(){
+  renderPosts();
+  renderExamTree();
+  renderDocs();
+  renderAdminLists();
+}
+
+function renderPosts(){
+  const grid = document.getElementById('postsGrid');
+  document.getElementById('postCount').textContent = state.posts.length + ' bài viết';
+  if(!state.posts.length){ grid.innerHTML = '<div class="empty-note">Chưa có bài đăng nào.</div>'; return; }
+  grid.innerHTML = state.posts.map(p => `
+    <div class="post-card">
+      ${p.imageUrl ? `<img class="post-image" src="${p.imageUrl}" alt="">` : ''}
+      <div class="post-date">${escapeHtml(p.date)}</div>
+      <h3>${escapeHtml(p.title)}</h3>
+      <p>${escapeHtml(p.body)}</p>
+    </div>`).join('');
+}
+
+function buildExamTree(){
+  const tree = {};
+  EXAM_CATEGORIES.forEach(c => tree[c] = {});
+  state.exams.forEach(e => {
+    const cat = EXAM_CATEGORIES.includes(e.category) ? e.category : 'Kiểm tra thường xuyên';
+    if(!tree[cat][e.grade]) tree[cat][e.grade] = {};
+    if(!tree[cat][e.grade][e.subject]) tree[cat][e.grade][e.subject] = [];
+    tree[cat][e.grade][e.subject].push(e);
+  });
+  return tree;
+}
+
+function toggleNode(key){
+  if(openNodes.has(key)) openNodes.delete(key); else openNodes.add(key);
+  renderExamTree();
+}
+
+function renderExamTree(){
+  const tree = buildExamTree();
+  document.getElementById('examEmpty').style.display = state.exams.length ? 'none' : 'block';
+  let html = '';
+  EXAM_CATEGORIES.forEach(cat => {
+    const grades = tree[cat];
+    const gradeKeys = Object.keys(grades).sort();
+    const catTotal = gradeKeys.reduce((sum,g) => sum + Object.values(grades[g]).reduce((s2,arr)=>s2+arr.length,0), 0);
+    const catOpen = openNodes.has(cat);
+    html += `<div class="lvl-1"><div class="tree-row" onclick="toggleNode('${escapeAttr(cat)}')">
+        <span class="tree-chevron">${catOpen?'▾':'▸'}</span>
+        <span>${escapeHtml(cat)}</span>
+        <span class="tree-count">${catTotal} đề</span>
+      </div></div>`;
+    if(catOpen){
+      html += `<div class="tree-children">`;
+      if(!gradeKeys.length){
+        html += `<div class="tree-empty-note">Chưa có đề thi trong mục này.</div>`;
+      }
+      gradeKeys.forEach(g => {
+        const gradeKey = cat+'|'+g;
+        const subjects = grades[g];
+        const subjKeys = Object.keys(subjects).sort();
+        const gTotal = subjKeys.reduce((s,sub)=>s+subjects[sub].length,0);
+        const gOpen = openNodes.has(gradeKey);
+        html += `<div class="lvl-2"><div class="tree-row" onclick="toggleNode('${escapeAttr(gradeKey)}')">
+            <span class="tree-chevron">${gOpen?'▾':'▸'}</span>
+            <span>Khối ${escapeHtml(g)}</span>
+            <span class="tree-count">${gTotal} đề</span>
+          </div></div>`;
+        if(gOpen){
+          subjKeys.forEach(sub => {
+            const subjKey = gradeKey+'|'+sub;
+            const exams = subjects[sub];
+            const sOpen = openNodes.has(subjKey);
+            html += `<div class="lvl-3"><div class="tree-row" onclick="toggleNode('${escapeAttr(subjKey)}')">
+                <span class="tree-chevron">${sOpen?'▾':'▸'}</span>
+                <span>${escapeHtml(sub)}</span>
+                <span class="tree-count">${exams.length} đề</span>
+              </div>`;
+            if(sOpen){
+              exams.forEach(e => { html += renderExamLeaf(e); });
+            }
+            html += `</div>`;
+          });
+        }
+      });
+      html += `</div>`;
+    }
+  });
+  document.getElementById('examTree').innerHTML = html;
+}
+
+function renderExamLeaf(e){
+  const status = getExamStatus(e);
+  const statusBadge = status==='wait' ? `<span class="status-badge status-wait">Mở lúc ${fmtDT(e.openFrom)}</span>`
+    : status==='closed' ? `<span class="status-badge status-closed">Đã đóng lúc ${fmtDT(e.openTo)}</span>`
+    : (e.openFrom || e.openTo) ? `<span class="status-badge status-open">Đang mở${e.openTo ? ' đến '+fmtDT(e.openTo) : ''}</span>` : '';
+  const canOpen = status === 'open';
+  return `<div class="tree-leaf">
+      <div class="tree-leaf-title">${escapeHtml(e.title)}${e.fileName ? ` <span class="file-badge">${escapeHtml(e.fileName)}</span>` : ''}</div>
+      <div class="tree-leaf-actions">
+        ${statusBadge}
+        <span class="lock-state">${unlocked[e.id] ? 'Đã mở khoá' : 'Cần mật khẩu'}</span>
+        <button class="btn ${unlocked[e.id] ? 'btn-outline' : 'btn-gold'}" style="padding:7px 14px;font-size:12.5px;${canOpen?'':'opacity:0.55;'}" onclick="event.stopPropagation();openExam('${e.id}')">${unlocked[e.id] ? 'Xem lại' : 'Mở đề'}</button>
+      </div>
+    </div>`;
+}
+function escapeAttr(s){ return String(s).replace(/'/g, "\\'"); }
+
+function renderDocs(){
+  const el = document.getElementById('docList');
+  if(!state.docs.length){ el.innerHTML = '<div class="empty-note">Chưa có tài liệu nào.</div>'; return; }
+  el.innerHTML = state.docs.map(d => `
+    <div class="doc-row">
+      <div class="doc-info">
+        <div class="exam-tags" style="margin-bottom:6px;">
+          <span class="tag tag-grade">Khối ${escapeHtml(d.grade)}</span>
+          <span class="tag tag-subject">${escapeHtml(d.subject)}</span>
+        </div>
+        <h4>${escapeHtml(d.title)}</h4>
+        <p>${escapeHtml(d.desc)}</p>
+        ${d.fileName ? `<div class="file-badge" style="margin-top:6px;">Tệp: ${escapeHtml(d.fileName)}</div>` : ''}
+      </div>
+      <button class="doc-download" onclick="downloadDoc('${d.id}')">Tải xuống</button>
+    </div>`).join('');
+}
+
+function downloadDoc(id){
+  const d = state.docs.find(x=>x.id===id);
+  if(!d) return;
+  if(d.fileUrl){
+    window.open(d.fileUrl, '_blank');
+    return;
+  }
+  alert('Tài liệu này chưa được quản trị viên tải tệp gốc lên.');
+}
+
+function openExam(id){
+  const e = state.exams.find(x=>x.id===id);
+  if(!e) return;
+  if(unlocked[id]){ openExamInNewWindow(e); return; }
+  const status = getExamStatus(e);
+  if(status === 'wait'){ alert(`Đề thi này chưa mở. Đề sẽ mở lúc ${fmtDT(e.openFrom)}.`); return; }
+  if(status === 'closed'){ alert(`Đề thi này đã hết thời gian mở (đóng lúc ${fmtDT(e.openTo)}).`); return; }
+  pendingExamId = id;
+  document.getElementById('pwExamTitle').textContent = e.title;
+  document.getElementById('pwExamMeta').textContent = `${e.category || 'Kiểm tra thường xuyên'} · Khối ${e.grade} · ${e.subject}`;
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwError').classList.remove('on');
+  document.getElementById('pwModal').classList.add('on');
+  setTimeout(()=>document.getElementById('pwInput').focus(), 50);
+}
+function closePwModal(){ document.getElementById('pwModal').classList.remove('on'); pendingExamId=null; }
+
+function checkPassword(){
+  const e = state.exams.find(x=>x.id===pendingExamId);
+  const val = document.getElementById('pwInput').value.trim();
+  if(!val){
+    document.getElementById('pwError').textContent = 'Vui lòng nhập mật khẩu.';
+    document.getElementById('pwError').classList.add('on');
+    return;
+  }
+  if(e && val === e.password){
+    unlocked[e.id] = true;
+    saveUnlockedLocal();
+    closePwModal();
+    renderExamTree();
+    openExamInNewWindow(e);
+  } else {
+    document.getElementById('pwError').textContent = 'Mật khẩu không đúng. Vui lòng kiểm tra lại.';
+    document.getElementById('pwError').classList.add('on');
+  }
+}
+document.getElementById('pwInput').addEventListener('keydown', (ev)=>{ if(ev.key==='Enter') checkPassword(); });
+
+function examPageShell(bodyHtml, title){
+  return `<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeHtml(title||'Đề thi')} — MATHST</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"><\/script>
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;background:#F6F3EA;font-family:'Inter',Arial,sans-serif;color:#1B1D26;}
+  .wrap{max-width:860px;margin:0 auto;padding:40px 28px 90px;}
+  .head{border-bottom:2px solid #C89239;padding-bottom:18px;margin-bottom:26px;}
+  .head h1{font-size:25px;margin:0 0 8px;color:#132445;font-family:Georgia,serif;}
+  .head p{margin:0;color:#565A68;font-size:13.5px;}
+  .questions .q{padding:14px 0;border-bottom:1px solid #E2DED2;font-size:15.5px;line-height:1.7;}
+  .q-num{color:#C89239;font-weight:700;margin-right:6px;}
+  .doc-preview{background:#fff;border:1px solid #E2DED2;border-radius:8px;padding:30px;font-size:15px;line-height:1.85;margin-top:14px;}
+  .doc-preview p{margin:0 0 12px;}
+  .doc-preview h1,.doc-preview h2,.doc-preview h3{color:#132445;margin:18px 0 10px;}
+  .doc-preview table{border-collapse:collapse;width:100%;margin:12px 0;}
+  .doc-preview td,.doc-preview th{border:1px solid #E2DED2;padding:6px 10px;font-size:13.5px;}
+  .doc-preview img{max-width:100%;height:auto;}
+  .pdf-frame{width:100%;height:calc(100vh - 60px);border:none;border-radius:8px;overflow:hidden;background:#fff;}
+  .note{background:#fff;border:1px solid #E2DED2;border-radius:8px;padding:16px;margin-top:14px;font-size:13.5px;color:#565A68;}
+  .note a{color:#132445;font-weight:600;}
+  .loading{padding:60px;text-align:center;color:#565A68;}
+</style>
+</head><body>${bodyHtml}</body></html>`;
+}
+
+function openExamInNewWindow(e){
+  const lowerName = (e.fileName||'').toLowerCase();
+  const isPdf = lowerName.endsWith('.pdf');
+  const isDocx = lowerName.endsWith('.docx');
+  const isOldDoc = lowerName.endsWith('.doc') && !isDocx;
+
+  // PDF already renders full-screen natively in the browser's own viewer — just open it directly.
+  if(e.fileUrl && isPdf){
+    window.open(e.fileUrl, '_blank');
+    return;
+  }
+
+  // Open the tab synchronously first (so it isn't blocked as a pop-up), then fill it in once ready.
+  const win = window.open('', '_blank');
+  if(!win){
+    alert('Trình duyệt đã chặn việc mở cửa sổ mới. Vui lòng cho phép pop-up cho trang này rồi bấm lại.');
+    return;
+  }
+  win.document.write(examPageShell('<div class="loading">Đang tải đề thi...</div>', e.title));
+  win.document.close();
+
+  (async () => {
+    const metaLine = `${escapeHtml(e.category||'Kiểm tra thường xuyên')} · Khối ${escapeHtml(e.grade)} · ${escapeHtml(e.subject)}`;
+    let bodyHtml = `<div class="wrap"><div class="head"><h1>${escapeHtml(e.title)}</h1><p>${metaLine}</p></div>`;
+
+    const lines = (e.content || '').split('\n').filter(l=>l.trim());
+    if(lines.length){
+      bodyHtml += '<div class="questions">' + lines.map((l,i)=>`<div class="q"><span class="q-num">${i+1}.</span>${escapeHtml(l)}</div>`).join('') + '</div>';
+    }
+
+    if(e.fileUrl){
+      if(isDocx && window.mammoth){
+        try{
+          const resp = await fetch(e.fileUrl);
+          const arrayBuffer = await resp.arrayBuffer();
+          // NOTE: mammoth.js cannot convert MathType/Equation Editor objects (they're embedded as
+          // OLE objects with a WMF/EMF preview image, a format browsers can't render) — those
+          // formulas will show as broken image icons or be missing entirely. There is no reliable
+          // client-side fix for this; PDF export is the only guaranteed-accurate path for equations.
+          const result = await mammoth.convertToHtml({arrayBuffer});
+          bodyHtml += `<div class="note">Lưu ý: công thức MathType/Equation Editor trong file Word có thể không hiển thị đúng ở đây. Nếu thấy thiếu công thức, hãy nhờ quản trị viên tải lại bằng file PDF.</div>`;
+          bodyHtml += `<div class="doc-preview">${result.value}</div>`;
+        }catch(err){
+          bodyHtml += `<div class="note">Không thể hiển thị trực tiếp nội dung file này (có thể do cấu hình CORS trên Storage chưa cho phép). <a href="${e.fileUrl}" target="_blank">Mở/tải file</a> để xem trong Word.</div>`;
+        }
+      } else if(isOldDoc){
+        bodyHtml += `<div class="note">Định dạng .doc (Word cũ) chưa xem trước trực tiếp được. <a href="${e.fileUrl}" target="_blank">Tải xuống tệp</a> để mở bằng Word, hoặc nhờ quản trị viên xuất lại thành .docx hoặc .pdf.</div>`;
+      }
+    }
+    bodyHtml += '</div>';
+
+    win.document.open();
+    win.document.write(examPageShell(bodyHtml, e.title));
+    win.document.close();
+    if(win.renderMathInElement){
+      win.renderMathInElement(win.document.body, {
+        delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]
+      });
+    }
+  })();
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---- Admin ---- */
+document.getElementById('adminToggleBtn').addEventListener('click', ()=>{
+  if(isAdmin){
+    auth.signOut();
+  } else {
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').classList.remove('on');
+    document.getElementById('loginModal').classList.add('on');
+    setTimeout(()=>document.getElementById('loginEmail').focus(), 50);
+  }
+});
+function closeLoginModal(){ document.getElementById('loginModal').classList.remove('on'); }
+function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.classList.remove('on');
+  if(!email || !pw){ errEl.textContent = 'Vui lòng nhập email và mật khẩu.'; errEl.classList.add('on'); return; }
+  auth.signInWithEmailAndPassword(email, pw).then(()=>{
+    closeLoginModal();
+  }).catch(()=>{
+    errEl.textContent = 'Đăng nhập thất bại: sai email hoặc mật khẩu.';
+    errEl.classList.add('on');
+  });
+}
+document.getElementById('loginPassword').addEventListener('keydown', ev=>{ if(ev.key==='Enter') doLogin(); });
+
+async function addPost(){
+  if(!isAdmin){ alert('Bạn cần đăng nhập quản trị trước.'); return; }
+  const title = document.getElementById('postTitle').value.trim();
+  const body = document.getElementById('postBody').value.trim();
+  if(!title || !body){ alert('Vui lòng nhập đầy đủ tiêu đề và nội dung.'); return; }
+  const fileInput = document.getElementById('postImage');
+  const file = fileInput.files[0];
+  let imageUrl = null;
+  try{
+    if(file){
+      if(file.size > MAX_FILE_BYTES){ alert('Hình ảnh vượt quá dung lượng cho phép (tối đa 20MB).'); return; }
+      const ref = storage.ref('posts/' + Date.now() + '_' + file.name);
+      await ref.put(file);
+      imageUrl = await ref.getDownloadURL();
+    }
+    const d = new Date();
+    const date = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    await db.collection('posts').add({date, title, body, imageUrl, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    document.getElementById('postTitle').value=''; document.getElementById('postBody').value=''; fileInput.value='';
+  }catch(err){
+    alert('Không thể đăng bài: ' + err.message);
+  }
+}
+
+async function addExam(){
+  if(!isAdmin){ alert('Bạn cần đăng nhập quản trị trước.'); return; }
+  const category = document.getElementById('examCategory').value;
+  const grade = document.getElementById('examGrade').value;
+  const subject = document.getElementById('examSubject').value;
+  const password = document.getElementById('examPassword').value.trim();
+  const title = document.getElementById('examTitle').value.trim();
+  const content = document.getElementById('examContent').value.trim();
+  const openFrom = document.getElementById('examOpenFrom').value;
+  const openTo = document.getElementById('examOpenTo').value;
+  const fileInput = document.getElementById('examFile');
+  const file = fileInput.files[0];
+  if(!password || !title){ alert('Vui lòng nhập đầy đủ tên đề và mật khẩu.'); return; }
+  if(!content && !file){ alert('Vui lòng nhập nội dung đề hoặc tải lên tệp đề thi.'); return; }
+  if(openFrom && openTo && new Date(openTo) <= new Date(openFrom)){ alert('Thời gian "đến khi nào" phải sau thời gian "mở đề từ".'); return; }
+  try{
+    let fileUrl = null, fileName = null;
+    if(file){
+      if(file.size > MAX_FILE_BYTES){ alert('Tệp đề thi vượt quá dung lượng cho phép (tối đa 20MB).'); return; }
+      const ref = storage.ref('exams/' + Date.now() + '_' + file.name);
+      await ref.put(file);
+      fileUrl = await ref.getDownloadURL();
+      fileName = file.name;
+    }
+    await db.collection('exams').add({grade, subject, category, title, password, content, fileUrl, fileName, openFrom, openTo});
+    openNodes.add(category); openNodes.add(category+'|'+grade); openNodes.add(category+'|'+grade+'|'+subject);
+    document.getElementById('examTitle').value=''; document.getElementById('examPassword').value=''; document.getElementById('examContent').value='';
+    document.getElementById('examOpenFrom').value=''; document.getElementById('examOpenTo').value=''; fileInput.value='';
+  }catch(err){
+    alert('Không thể thêm đề thi: ' + err.message);
+  }
+}
+
+async function addDoc(){
+  if(!isAdmin){ alert('Bạn cần đăng nhập quản trị trước.'); return; }
+  const grade = document.getElementById('docGrade').value;
+  const subject = document.getElementById('docSubject').value;
+  const title = document.getElementById('docTitle').value.trim();
+  const desc = document.getElementById('docDesc').value.trim();
+  const fileInput = document.getElementById('docFile');
+  const file = fileInput.files[0];
+  if(!title){ alert('Vui lòng nhập tên tài liệu.'); return; }
+  try{
+    let fileUrl = null, fileName = null;
+    if(file){
+      if(file.size > MAX_FILE_BYTES){ alert('Tệp tài liệu vượt quá dung lượng cho phép (tối đa 20MB).'); return; }
+      const ref = storage.ref('library/' + Date.now() + '_' + file.name);
+      await ref.put(file);
+      fileUrl = await ref.getDownloadURL();
+      fileName = file.name;
+    }
+    await db.collection('documents').add({grade, subject, title, desc, fileUrl, fileName});
+    document.getElementById('docTitle').value=''; document.getElementById('docDesc').value=''; fileInput.value='';
+  }catch(err){
+    alert('Không thể thêm tài liệu: ' + err.message);
+  }
+}
+
+function renderAdminLists(){
+  document.getElementById('postAdminList').innerHTML = state.posts.map(p=>`
+    <div class="admin-item-row"><span>${escapeHtml(p.title)}</span><button class="del" onclick="delItem('posts','${p.id}')">Xoá</button></div>`).join('');
+  document.getElementById('examAdminList').innerHTML = state.exams.map(e=>`
+    <div class="admin-item-row"><span>${escapeHtml(e.category||'Kiểm tra thường xuyên')} · Khối ${e.grade} · ${escapeHtml(e.title)} — mật khẩu: ${escapeHtml(e.password)}</span><button class="del" onclick="delItem('exams','${e.id}')">Xoá</button></div>`).join('');
+  document.getElementById('docAdminList').innerHTML = state.docs.map(d=>`
+    <div class="admin-item-row"><span>Khối ${d.grade} · ${escapeHtml(d.title)}</span><button class="del" onclick="delItem('docs','${d.id}')">Xoá</button></div>`).join('');
+}
+
+async function delItem(kind, id){
+  if(!isAdmin){ alert('Bạn cần đăng nhập quản trị trước.'); return; }
+  const collectionName = kind === 'docs' ? 'documents' : kind;
+  const item = state[kind].find(x=>x.id===id);
+  try{
+    await db.collection(collectionName).doc(id).delete();
+    const url = item && (item.fileUrl || item.imageUrl);
+    if(url){
+      try{ await storage.refFromURL(url).delete(); }catch(e){ /* file already gone, ignore */ }
+    }
+  }catch(err){
+    alert('Không thể xoá: ' + err.message);
+  }
+}
+
+function tickClock(){
+  const d = new Date();
+  const days=['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'];
+  document.getElementById('live-clock').textContent = days[d.getDay()]+', '+String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+}
+tickClock();
+
+initFirestoreListeners();
+</script>
+</body>
+</html>
