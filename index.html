@@ -511,8 +511,13 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const SUPABASE_BUCKET = 'math-center';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function sanitizeForStorageKey(name){
+  const noDiacritics = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const noDJ = noDiacritics.replace(/đ/g,'d').replace(/Đ/g,'D');
+  return noDJ.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+}
 async function uploadToSupabase(file, folder){
-  const path = folder + '/' + Date.now() + '_' + file.name;
+  const path = folder + '/' + Date.now() + '_' + sanitizeForStorageKey(file.name);
   const { error } = await sb.storage.from(SUPABASE_BUCKET).upload(path, file, { cacheControl: '3600', upsert: false });
   if(error) throw error;
   const { data: urlData } = sb.storage.from(SUPABASE_BUCKET).getPublicUrl(path);
