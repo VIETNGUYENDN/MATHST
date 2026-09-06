@@ -103,6 +103,12 @@
   .subject-tab-btn.on{background:var(--navy);color:#fff;border-color:var(--navy);}
   .subject-tab-btn:hover:not(.on){background:var(--cream);}
 
+  .grade-tabs{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:18px;}
+  .grade-tabs-label{font-size:12.5px;color:var(--ink-soft);margin-right:4px;}
+  .grade-tab-btn{border:1px solid var(--line);background:var(--paper);padding:6px 13px;border-radius:20px;font-size:13px;color:var(--ink);}
+  .grade-tab-btn.on{background:var(--gold);color:var(--navy-deep);border-color:var(--gold);font-weight:600;}
+  .grade-tab-btn:hover:not(.on){background:var(--cream);}
+
   .open-exam-card{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--paper);border:1px solid var(--gold);border-left:4px solid var(--gold);border-radius:var(--radius);padding:14px 18px;margin-bottom:10px;}
   .open-exam-card .exam-tags{flex-shrink:0;}
   .open-exam-title{font-size:14.5px;font-weight:500;color:var(--navy);flex:1;min-width:160px;}
@@ -318,6 +324,14 @@
     <div class="subject-tabs" id="examSubjectTabs">
       <button class="subject-tab-btn on" data-subject="Toán" onclick="setExamSubjectTab('Toán')">Toán</button>
       <button class="subject-tab-btn" data-subject="KHTN" onclick="setExamSubjectTab('KHTN')">Khoa học tự nhiên</button>
+    </div>
+    <div class="grade-tabs" id="examGradeTabs">
+      <span class="grade-tabs-label">Khối:</span>
+      <button class="grade-tab-btn on" data-grade="all" onclick="setExamGradeFilter('all')">Tất cả</button>
+      <button class="grade-tab-btn" data-grade="6" onclick="setExamGradeFilter('6')">Khối 6</button>
+      <button class="grade-tab-btn" data-grade="7" onclick="setExamGradeFilter('7')">Khối 7</button>
+      <button class="grade-tab-btn" data-grade="8" onclick="setExamGradeFilter('8')">Khối 8</button>
+      <button class="grade-tab-btn" data-grade="9" onclick="setExamGradeFilter('9')">Khối 9</button>
     </div>
 
     <div class="exam-tree" id="examTree"></div>
@@ -673,20 +687,28 @@ function renderPosts(){
 }
 
 let examSubjectTab = 'Toán';
+let examGradeFilter = 'all';
 function setExamSubjectTab(subject){
   examSubjectTab = subject;
   document.querySelectorAll('.subject-tab-btn').forEach(b => b.classList.toggle('on', b.dataset.subject === subject));
+  renderExamTree();
+}
+function setExamGradeFilter(grade){
+  examGradeFilter = grade;
+  document.querySelectorAll('.grade-tab-btn').forEach(b => b.classList.toggle('on', b.dataset.grade === grade));
   renderExamTree();
 }
 
 function buildExamTree(){
   const tree = {};
   EXAM_CATEGORIES.forEach(c => tree[c] = {});
-  state.exams.filter(e => e.subject === examSubjectTab).forEach(e => {
-    const cat = EXAM_CATEGORIES.includes(e.category) ? e.category : 'Kiểm tra thường xuyên';
-    if(!tree[cat][e.grade]) tree[cat][e.grade] = [];
-    tree[cat][e.grade].push(e);
-  });
+  state.exams
+    .filter(e => e.subject === examSubjectTab && (examGradeFilter === 'all' || e.grade === examGradeFilter))
+    .forEach(e => {
+      const cat = EXAM_CATEGORIES.includes(e.category) ? e.category : 'Kiểm tra thường xuyên';
+      if(!tree[cat][e.grade]) tree[cat][e.grade] = [];
+      tree[cat][e.grade].push(e);
+    });
   return tree;
 }
 
@@ -697,7 +719,7 @@ function toggleNode(key){
 
 function renderExamTree(){
   const tree = buildExamTree();
-  const subjectCount = state.exams.filter(e => e.subject === examSubjectTab).length;
+  const subjectCount = state.exams.filter(e => e.subject === examSubjectTab && (examGradeFilter === 'all' || e.grade === examGradeFilter)).length;
   document.getElementById('examEmpty').style.display = subjectCount ? 'none' : 'block';
   let html = '';
   EXAM_CATEGORIES.forEach(cat => {
@@ -714,20 +736,24 @@ function renderExamTree(){
       html += `<div class="tree-children">`;
       if(!gradeKeys.length){
         html += `<div class="tree-empty-note">Chưa có đề thi trong mục này.</div>`;
+      } else if(examGradeFilter !== 'all'){
+        // A specific grade is already selected via the filter — skip the redundant grade row.
+        gradeKeys.forEach(g => { grades[g].forEach(e => { html += renderExamLeaf(e); }); });
+      } else {
+        gradeKeys.forEach(g => {
+          const gradeKey = cat+'|'+g;
+          const exams = grades[g];
+          const gOpen = openNodes.has(gradeKey);
+          html += `<div class="lvl-2"><div class="tree-row" onclick="toggleNode('${escapeAttr(gradeKey)}')">
+              <span class="tree-chevron">${gOpen?'▾':'▸'}</span>
+              <span>Khối ${escapeHtml(g)}</span>
+              <span class="tree-count">${exams.length} đề</span>
+            </div></div>`;
+          if(gOpen){
+            exams.forEach(e => { html += renderExamLeaf(e); });
+          }
+        });
       }
-      gradeKeys.forEach(g => {
-        const gradeKey = cat+'|'+g;
-        const exams = grades[g];
-        const gOpen = openNodes.has(gradeKey);
-        html += `<div class="lvl-2"><div class="tree-row" onclick="toggleNode('${escapeAttr(gradeKey)}')">
-            <span class="tree-chevron">${gOpen?'▾':'▸'}</span>
-            <span>Khối ${escapeHtml(g)}</span>
-            <span class="tree-count">${exams.length} đề</span>
-          </div></div>`;
-        if(gOpen){
-          exams.forEach(e => { html += renderExamLeaf(e); });
-        }
-      });
       html += `</div>`;
     }
   });
@@ -768,7 +794,7 @@ function renderOpenExamsBanner(){
         </div>
         <div class="open-exam-title">${escapeHtml(cat)} — ${escapeHtml(e.title)}</div>
         <div class="open-exam-meta">${escapeHtml(timeInfo)}</div>
-        <button class="btn btn-gold" style="padding:7px 14px;font-size:12.5px;" onclick="switchTab('exams');event.stopPropagation();">Xem đề</button>
+        <button class="btn btn-gold" style="padding:7px 14px;font-size:12.5px;" onclick="event.stopPropagation();openExam('${e.id}')">Xem đề</button>
       </div>`;
   }).join('');
 }
