@@ -11,6 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap');
@@ -502,8 +503,25 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const storage = firebase.storage();
 const auth = firebase.auth();
+
+// ---- Supabase setup (used only for file storage — Firestore/Auth stay on Firebase) ----
+const SUPABASE_URL = 'https://ynyrqbvxhjrajrumocpp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlueXJxYnZ4aGpyYWpydW1vY3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTM4MTYsImV4cCI6MjEwMzk2OTgxNn0.CaEJKKEVnrWi3W1t6M0fW9OpEte7tFuoFw64GJbxd9U';
+const SUPABASE_BUCKET = 'math-center';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function uploadToSupabase(file, folder){
+  const path = folder + '/' + Date.now() + '_' + file.name;
+  const { error } = await sb.storage.from(SUPABASE_BUCKET).upload(path, file, { cacheControl: '3600', upsert: false });
+  if(error) throw error;
+  const { data: urlData } = sb.storage.from(SUPABASE_BUCKET).getPublicUrl(path);
+  return { url: urlData.publicUrl, path };
+}
+async function deleteFromSupabase(path){
+  if(!path) return;
+  try{ await sb.storage.from(SUPABASE_BUCKET).remove([path]); }catch(e){ /* already gone, ignore */ }
+}
 
 let state = { posts: [], exams: [], docs: [] };
 let unlocked = {};
@@ -911,18 +929,18 @@ async function addPost(){
   if(!title || !body){ alert('Vui lòng nhập đầy đủ tiêu đề và nội dung.'); return; }
   const fileInput = document.getElementById('postImage');
   const file = fileInput.files[0];
-  let imageUrl = null;
+  let imageUrl = null, imagePath = null;
   try{
     if(file){
       if(file.size > MAX_FILE_BYTES){ alert('Hình ảnh vượt quá dung lượng cho phép (tối đa 20MB).'); return; }
-      const ref = storage.ref('posts/' + Date.now() + '_' + file.name);
-      await ref.put(file);
-      imageUrl = await ref.getDownloadURL();
+      const up = await uploadToSupabase(file, 'posts');
+      imageUrl = up.url; imagePath = up.path;
     }
     const d = new Date();
     const date = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
-    await db.collection('posts').add({date, title, body, imageUrl, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    await db.collection('posts').add({date, title, body, imageUrl, imagePath, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
     document.getElementById('postTitle').value=''; document.getElementById('postBody').value=''; fileInput.value='';
+    alert('Đã đăng bài thành công.');
   }catch(err){
     alert('Không thể đăng bài: ' + err.message);
   }
@@ -944,18 +962,19 @@ async function addExam(){
   if(!content && !file){ alert('Vui lòng nhập nội dung đề hoặc tải lên tệp đề thi.'); return; }
   if(openFrom && openTo && new Date(openTo) <= new Date(openFrom)){ alert('Thời gian "đến khi nào" phải sau thời gian "mở đề từ".'); return; }
   try{
-    let fileUrl = null, fileName = null;
+    let fileUrl = null, fileName = null, filePath = null;
     if(file){
       if(file.size > MAX_FILE_BYTES){ alert('Tệp đề thi vượt quá dung lượng cho phép (tối đa 20MB).'); return; }
-      const ref = storage.ref('exams/' + Date.now() + '_' + file.name);
-      await ref.put(file);
-      fileUrl = await ref.getDownloadURL();
-      fileName = file.name;
+      const up = await uploadToSupabase(file, 'exams');
+      fileUrl = up.url; filePath = up.path; fileName = file.name;
     }
-    await db.collection('exams').add({grade, subject, category, title, password, content, fileUrl, fileName, openFrom, openTo});
+    await db.collection('exams').add({grade, subject, category, title, password, content, fileUrl, filePath, fileName, openFrom, openTo});
     openNodes.add(category); openNodes.add(category+'|'+grade); openNodes.add(category+'|'+grade+'|'+subject);
     document.getElementById('examTitle').value=''; document.getElementById('examPassword').value=''; document.getElementById('examContent').value='';
     document.getElementById('examOpenFrom').value=''; document.getElementById('examOpenTo').value=''; fileInput.value='';
+    switchTab('exams');
+    renderExamTree();
+    alert('Đã thêm đề thi thành công. Xem trong "Ngân hàng đề thi" ở mục ' + category + ' → Khối ' + grade + ' → ' + subject + '.');
   }catch(err){
     alert('Không thể thêm đề thi: ' + err.message);
   }
@@ -971,16 +990,15 @@ async function addDoc(){
   const file = fileInput.files[0];
   if(!title){ alert('Vui lòng nhập tên tài liệu.'); return; }
   try{
-    let fileUrl = null, fileName = null;
+    let fileUrl = null, fileName = null, filePath = null;
     if(file){
       if(file.size > MAX_FILE_BYTES){ alert('Tệp tài liệu vượt quá dung lượng cho phép (tối đa 20MB).'); return; }
-      const ref = storage.ref('library/' + Date.now() + '_' + file.name);
-      await ref.put(file);
-      fileUrl = await ref.getDownloadURL();
-      fileName = file.name;
+      const up = await uploadToSupabase(file, 'library');
+      fileUrl = up.url; filePath = up.path; fileName = file.name;
     }
-    await db.collection('documents').add({grade, subject, title, desc, fileUrl, fileName});
+    await db.collection('documents').add({grade, subject, title, desc, fileUrl, filePath, fileName});
     document.getElementById('docTitle').value=''; document.getElementById('docDesc').value=''; fileInput.value='';
+    alert('Đã thêm tài liệu thành công.');
   }catch(err){
     alert('Không thể thêm tài liệu: ' + err.message);
   }
@@ -1001,10 +1019,8 @@ async function delItem(kind, id){
   const item = state[kind].find(x=>x.id===id);
   try{
     await db.collection(collectionName).doc(id).delete();
-    const url = item && (item.fileUrl || item.imageUrl);
-    if(url){
-      try{ await storage.refFromURL(url).delete(); }catch(e){ /* file already gone, ignore */ }
-    }
+    const path = item && (item.filePath || item.imagePath);
+    if(path) await deleteFromSupabase(path);
   }catch(err){
     alert('Không thể xoá: ' + err.message);
   }
