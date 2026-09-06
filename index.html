@@ -98,6 +98,16 @@
   .post-card p{font-size:13.5px;color:var(--ink-soft);margin:0;}
 
   /* ---- Exam bank tree ---- */
+  .subject-tabs{display:flex;gap:8px;margin-bottom:18px;}
+  .subject-tab-btn{border:1px solid var(--line);background:var(--paper);padding:9px 18px;border-radius:8px;font-size:14px;font-weight:500;color:var(--ink-soft);}
+  .subject-tab-btn.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .subject-tab-btn:hover:not(.on){background:var(--cream);}
+
+  .open-exam-card{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--paper);border:1px solid var(--gold);border-left:4px solid var(--gold);border-radius:var(--radius);padding:14px 18px;margin-bottom:10px;}
+  .open-exam-card .exam-tags{flex-shrink:0;}
+  .open-exam-title{font-size:14.5px;font-weight:500;color:var(--navy);flex:1;min-width:160px;}
+  .open-exam-meta{font-size:12.5px;color:var(--ink-soft);}
+
   .exam-tree{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
   .tree-row{display:flex;align-items:center;gap:9px;padding:11px 16px;cursor:pointer;font-size:14px;color:var(--navy);font-weight:500;border-top:1px solid var(--line);}
   .tree-row:first-child{border-top:none;}
@@ -260,6 +270,12 @@
       </div>
     </div>
 
+    <div class="section-head" id="openExamsHead" style="display:none;">
+      <h2>Đề thi đang mở</h2>
+      <span class="hint">Cập nhật theo thời gian thực</span>
+    </div>
+    <div id="openExamsBanner" style="margin-bottom:8px;"></div>
+
     <div class="section-head">
       <h2>Hoạt động của trung tâm</h2>
       <span class="hint" id="postCount"></span>
@@ -297,6 +313,11 @@
     <div class="section-head">
       <h2>Ngân hàng đề thi</h2>
       <span class="hint">Duyệt theo cây thư mục — mở đề sẽ hiện trực tiếp trong trình duyệt sau khi nhập đúng mật khẩu</span>
+    </div>
+
+    <div class="subject-tabs" id="examSubjectTabs">
+      <button class="subject-tab-btn on" data-subject="Toán" onclick="setExamSubjectTab('Toán')">Toán</button>
+      <button class="subject-tab-btn" data-subject="KHTN" onclick="setExamSubjectTab('KHTN')">Khoa học tự nhiên</button>
     </div>
 
     <div class="exam-tree" id="examTree"></div>
@@ -651,14 +672,20 @@ function renderPosts(){
     </div>`).join('');
 }
 
+let examSubjectTab = 'Toán';
+function setExamSubjectTab(subject){
+  examSubjectTab = subject;
+  document.querySelectorAll('.subject-tab-btn').forEach(b => b.classList.toggle('on', b.dataset.subject === subject));
+  renderExamTree();
+}
+
 function buildExamTree(){
   const tree = {};
   EXAM_CATEGORIES.forEach(c => tree[c] = {});
-  state.exams.forEach(e => {
+  state.exams.filter(e => e.subject === examSubjectTab).forEach(e => {
     const cat = EXAM_CATEGORIES.includes(e.category) ? e.category : 'Kiểm tra thường xuyên';
-    if(!tree[cat][e.grade]) tree[cat][e.grade] = {};
-    if(!tree[cat][e.grade][e.subject]) tree[cat][e.grade][e.subject] = [];
-    tree[cat][e.grade][e.subject].push(e);
+    if(!tree[cat][e.grade]) tree[cat][e.grade] = [];
+    tree[cat][e.grade].push(e);
   });
   return tree;
 }
@@ -670,12 +697,13 @@ function toggleNode(key){
 
 function renderExamTree(){
   const tree = buildExamTree();
-  document.getElementById('examEmpty').style.display = state.exams.length ? 'none' : 'block';
+  const subjectCount = state.exams.filter(e => e.subject === examSubjectTab).length;
+  document.getElementById('examEmpty').style.display = subjectCount ? 'none' : 'block';
   let html = '';
   EXAM_CATEGORIES.forEach(cat => {
     const grades = tree[cat];
     const gradeKeys = Object.keys(grades).sort();
-    const catTotal = gradeKeys.reduce((sum,g) => sum + Object.values(grades[g]).reduce((s2,arr)=>s2+arr.length,0), 0);
+    const catTotal = gradeKeys.reduce((sum,g) => sum + grades[g].length, 0);
     const catOpen = openNodes.has(cat);
     html += `<div class="lvl-1"><div class="tree-row" onclick="toggleNode('${escapeAttr(cat)}')">
         <span class="tree-chevron">${catOpen?'▾':'▸'}</span>
@@ -689,36 +717,22 @@ function renderExamTree(){
       }
       gradeKeys.forEach(g => {
         const gradeKey = cat+'|'+g;
-        const subjects = grades[g];
-        const subjKeys = Object.keys(subjects).sort();
-        const gTotal = subjKeys.reduce((s,sub)=>s+subjects[sub].length,0);
+        const exams = grades[g];
         const gOpen = openNodes.has(gradeKey);
         html += `<div class="lvl-2"><div class="tree-row" onclick="toggleNode('${escapeAttr(gradeKey)}')">
             <span class="tree-chevron">${gOpen?'▾':'▸'}</span>
             <span>Khối ${escapeHtml(g)}</span>
-            <span class="tree-count">${gTotal} đề</span>
+            <span class="tree-count">${exams.length} đề</span>
           </div></div>`;
         if(gOpen){
-          subjKeys.forEach(sub => {
-            const subjKey = gradeKey+'|'+sub;
-            const exams = subjects[sub];
-            const sOpen = openNodes.has(subjKey);
-            html += `<div class="lvl-3"><div class="tree-row" onclick="toggleNode('${escapeAttr(subjKey)}')">
-                <span class="tree-chevron">${sOpen?'▾':'▸'}</span>
-                <span>${escapeHtml(sub)}</span>
-                <span class="tree-count">${exams.length} đề</span>
-              </div>`;
-            if(sOpen){
-              exams.forEach(e => { html += renderExamLeaf(e); });
-            }
-            html += `</div>`;
-          });
+          exams.forEach(e => { html += renderExamLeaf(e); });
         }
       });
       html += `</div>`;
     }
   });
   document.getElementById('examTree').innerHTML = html;
+  renderOpenExamsBanner();
 }
 
 function renderExamLeaf(e){
@@ -727,7 +741,7 @@ function renderExamLeaf(e){
     : status==='closed' ? `<span class="status-badge status-closed">Đã đóng lúc ${fmtDT(e.openTo)}</span>`
     : (e.openFrom || e.openTo) ? `<span class="status-badge status-open">Đang mở${e.openTo ? ' đến '+fmtDT(e.openTo) : ''}</span>` : '';
   const canOpen = status === 'open';
-  return `<div class="tree-leaf">
+  return `<div class="tree-leaf" style="padding-left:40px;">
       <div class="tree-leaf-title">${escapeHtml(e.title)}${e.fileName ? ` <span class="file-badge">${escapeHtml(e.fileName)}</span>` : ''}</div>
       <div class="tree-leaf-actions">
         ${statusBadge}
@@ -737,6 +751,29 @@ function renderExamLeaf(e){
     </div>`;
 }
 function escapeAttr(s){ return String(s).replace(/'/g, "\\'"); }
+
+function renderOpenExamsBanner(){
+  const openExams = state.exams.filter(e => getExamStatus(e) === 'open' && (e.openFrom || e.openTo));
+  const head = document.getElementById('openExamsHead');
+  const banner = document.getElementById('openExamsBanner');
+  if(!openExams.length){ head.style.display = 'none'; banner.innerHTML = ''; return; }
+  head.style.display = 'flex';
+  banner.innerHTML = openExams.map(e => {
+    const cat = e.category || 'Kiểm tra thường xuyên';
+    const timeInfo = e.openTo ? `Mở đến ${fmtDT(e.openTo)}` : (e.openFrom ? `Đang mở (từ ${fmtDT(e.openFrom)})` : 'Đang mở');
+    return `<div class="open-exam-card">
+        <div class="exam-tags">
+          <span class="tag tag-grade">Khối ${escapeHtml(e.grade)}</span>
+          <span class="tag tag-subject">${escapeHtml(e.subject)}</span>
+        </div>
+        <div class="open-exam-title">${escapeHtml(cat)} — ${escapeHtml(e.title)}</div>
+        <div class="open-exam-meta">${escapeHtml(timeInfo)}</div>
+        <button class="btn btn-gold" style="padding:7px 14px;font-size:12.5px;" onclick="switchTab('exams');event.stopPropagation();">Xem đề</button>
+      </div>`;
+  }).join('');
+}
+setInterval(() => { renderExamTree(); }, 60000);
+
 
 function renderDocs(){
   const el = document.getElementById('docList');
